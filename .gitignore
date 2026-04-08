@@ -1,0 +1,35 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+
+# Pytest and coverage
+.pytest_cache/
+.coverage
+htmlcov/
+nosetests.xml
+coverage.xml
+*,cover
+
+# Reports and logs
+reports/
+allure-results/
+Configurations/
+*.log
+
+# IDE Specific (PyCharm/VSCode)
+.idea/
+.vscode/
+
+# Project data
+test_data/
+!test_data/template.xlsx # (Optional: keeps the template but ignores actual data)
+
+# OS generated files
+.DS_Store
+Thumbs.db
