@@ -3,7 +3,9 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 
+from pages.DashBoardPage import DashboardPage
 from utilities.ReadConfig import ReadConfig
+from pages.LoginPage import LoginPage
 
 
 @pytest.fixture(scope="function")
@@ -15,6 +17,7 @@ def setup(request):
         # You can add logic here to choose browser from config later
         service = Service(ChromeDriverManager().install())
         driver = webdriver.Chrome(service=service)
+        print(" Chrome Driver Launched Successfully !! ")
 
         # 2️⃣ Browser configurations
         # Taking timeout from config using your universal method
@@ -30,6 +33,7 @@ def setup(request):
         # 3️⃣ Launch application
         base_url = ReadConfig.get_config_data('common info', 'baseURL')
         driver.get(base_url)
+        print(" URL Launched Successfully !! ")
 
         # 4️⃣ Pass driver to the test class (Like DriverManager)
         if request.cls is not None:
@@ -45,4 +49,13 @@ def setup(request):
         raise e
 
     finally:
-        driver.quit()
+        # 🛑 Only quit if driver was actually initialized
+        if driver is not None:
+            driver.quit()
+
+
+@pytest.fixture(scope="function")
+def init_login_pages(request, setup):
+    # This only initializes pages related to Login/Dashboard
+    request.cls.lp = LoginPage(setup)
+    request.cls.dp = DashboardPage(setup)
