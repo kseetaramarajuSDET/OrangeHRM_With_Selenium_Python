@@ -7,6 +7,7 @@ class LoginPage(BasePage):
     input_username_xpath = (By.XPATH, "//input[@placeholder='Username']")
     input_password_xpath = (By.XPATH, "//input[@placeholder='Password']")
     button_login_xpath = (By.XPATH, "//button[normalize-space()='Login']")
+    login_invalid_msg = (By.XPATH, "//p[text()='Invalid credentials']")
 
     def __init__(self, driver):
         super().__init__(driver)
@@ -19,3 +20,6 @@ class LoginPage(BasePage):
 
     def clickOnLogin(self):
         self.click(self.button_login_xpath)
+
+    def is_error_msg_displayed(self):
+        return self.is_displayed(self.login_invalid_msg)

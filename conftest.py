@@ -28,12 +28,11 @@ def setup(request):
 
         driver.delete_all_cookies()
 
-        driver.maximize_window()
-
         # 3️⃣ Launch application
         base_url = ReadConfig.get_config_data('common info', 'baseURL')
         driver.get(base_url)
         print(" URL Launched Successfully !! ")
+        driver.maximize_window()
 
         # 4️⃣ Pass driver to the test class (Like DriverManager)
         if request.cls is not None:
@@ -44,7 +43,7 @@ def setup(request):
         # --------------------------
 
     except Exception as e:
-        if driver:
+        if driver is not None:
             driver.quit()
         raise e
 
