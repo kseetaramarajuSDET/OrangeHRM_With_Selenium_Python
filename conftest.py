@@ -4,6 +4,7 @@ from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 
 from pages.DashBoardPage import DashboardPage
+from pages.JobPage import JobPage
 from utilities.ReadConfig import ReadConfig
 from pages.LoginPage import LoginPage
 
@@ -54,7 +55,8 @@ def setup(request):
 
 
 @pytest.fixture(scope="function")
-def init_login_pages(request, setup):
-    # This only initializes pages related to Login/Dashboard
+def init_pages(request, setup):
+    # This only initializes pages related to Job Pages
     request.cls.lp = LoginPage(setup)
     request.cls.dp = DashboardPage(setup)
+    request.cls.jp = JobPage(setup)

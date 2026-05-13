@@ -3,6 +3,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.action_chains import ActionChains
 from utilities.ReadConfig import ReadConfig
+import os
 
 
 class BasePage:
@@ -28,6 +29,12 @@ class BasePage:
     def wait_for_clickable(self, locator):
         try:
             return self.wait.until(EC.element_to_be_clickable(locator))
+        except TimeoutException:
+            raise
+
+    def wait_for_presence(self, locator):
+        try:
+            return self.wait.until(EC.presence_of_element_located(locator))
         except TimeoutException:
             raise
 
@@ -75,3 +82,19 @@ class BasePage:
     def get_element(self, locator):
         # The * unpacking converts (By.ID, "val") into By.ID, "val"
         return self.driver.find_element(*locator)
+
+    # File Uploading
+    def upload_file(self, locator, file_relative_path):
+        """
+        Uploads a file by converting a relative path to an absolute path
+        and sending it to the upload input element.
+        """
+        # 1. Wait for the hidden or visible input element
+        # Use wait_for_presence because sometimes upload inputs are invisible
+        element = self.wait_for_presence(locator)
+
+        # 2. Get the absolute path (Selenium needs the full C:\... path)
+        absolute_path = os.path.abspath(file_relative_path)
+
+        # 3. Send the path to the element
+        element.send_keys(absolute_path)

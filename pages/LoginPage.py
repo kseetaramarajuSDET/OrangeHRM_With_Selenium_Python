@@ -4,8 +4,8 @@ from selenium.webdriver.common.by import By
 
 
 class LoginPage(BasePage):
-    input_username_xpath = (By.XPATH, "//input[@placeholder='Username']")
-    input_password_xpath = (By.XPATH, "//input[@placeholder='Password']")
+    input_username_xpath = (By.XPATH, "//input[@name='username']")
+    input_password_xpath = (By.XPATH, "//input[@name='password']")
     button_login_xpath = (By.XPATH, "//button[normalize-space()='Login']")
     login_invalid_msg = (By.XPATH, "//p[text()='Invalid credentials']")
 
