@@ -1,7 +1,14 @@
+import os
+
 import pytest
 from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
+# Import specific services
+from selenium.webdriver.chrome.service import Service as ChromeService
+from selenium.webdriver.firefox.service import Service as FirefoxService
+from selenium.webdriver.edge.service import Service as EdgeService
 from webdriver_manager.chrome import ChromeDriverManager
+from webdriver_manager.firefox import GeckoDriverManager
+from webdriver_manager.microsoft import EdgeChromiumDriverManager
 
 from pages.DashBoardPage import DashboardPage
 from pages.JobPage import JobPage
@@ -14,24 +21,63 @@ from selenium.webdriver.chrome.options import Options
 logger = LogGen.loggen()
 
 
+# This hook adds the custom --browser argument to the pytest command
+def pytest_addoption(parser):
+    logger.info("--------- Addoption Hook Running  ---------")
+    parser.addoption("--browser", action="store", default="chrome",
+                     help="Type in browser: chrome or firefox or edge")
+
+
 @pytest.fixture(scope="function")
 def setup(request):
+    # Retrieve the browser name from the command line
+    browser_name = request.config.getoption("--browser").lower()
     driver = None
     logger.info("--------- Starting WebDriver Setup ---------")
+    logger.info(f"--------- Initializing {browser_name} browser ---------")
+
+    # if browser_name == "edge":
+    #     # Force webdriver-manager to ignore the internet entirely
+    #     os.environ['WDM_LOCAL'] = '1'
+    #     # Optional: Disable SSL verification if it's a proxy issue
+    #     os.environ['WDM_SSL_VERIFY'] = '0'
 
     try:
+        # 1️⃣ Create browser
+        if browser_name == "chrome":
+            service = ChromeService(ChromeDriverManager().install())
+            driver = webdriver.Chrome(service=service)
+        elif browser_name == "firefox":
+            service = FirefoxService(GeckoDriverManager().install())
+            driver = webdriver.Firefox(service=service)
+        elif browser_name == "edge":
+            try:
+                # 1. Attempt automated download first
+                service = EdgeService(EdgeChromiumDriverManager().install())
+                driver = webdriver.Edge(service=service)
+            except Exception as e:
+                logger.warning("⚠️ Network block detected! Switching to the local manual driver fallback.")
+                # 2. Local Fallback pointing directly to your new folder
+                local_driver_path = os.path.abspath("./drivers/msedgedriver.exe")
+
+                if not os.path.exists(local_driver_path):
+                    logger.error(f"❌ Manual setup failed: msedgedriver.exe is missing at {local_driver_path}")
+                    raise FileNotFoundError(f"Please check if msedgedriver.exe is in the drivers folder!")
+
+                service = EdgeService(executable_path=local_driver_path)
+                driver = webdriver.Edge(service=service)
+        else:
+            logger.warning(f"Browser '{browser_name}' not recognized. Launching Chrome as default.")
+            service = ChromeService(ChromeDriverManager().install())
+            driver = webdriver.Chrome(service=service)
+
         # 1. Add Chrome Options to handle renderer lag
 
-        chrome_options = Options()
-        chrome_options.add_argument("--disable-notifications")
-        chrome_options.add_argument("--disable-gpu")
-        chrome_options.add_argument("--no-sandbox")
+        # chrome_options = Options()
+        # chrome_options.add_argument("--disable-notifications")
+        # chrome_options.add_argument("--disable-gpu")
+        # chrome_options.add_argument("--no-sandbox")
         # chrome_options.add_argument("--headless")
-
-        # 1️⃣ Create browser
-        service = Service(ChromeDriverManager().install())
-        driver = webdriver.Chrome(service=service)
-        logger.info("Chrome Driver launched successfully.")
 
         # 2️⃣ Browser configurations
         timeout = int(ReadConfig.get_config_data('common info', 'timeout'))
@@ -55,13 +101,12 @@ def setup(request):
 
     except Exception as e:
         logger.error(f"Failed to initialize WebDriver: {str(e)}")
-        if driver is not None:
-            driver.quit()
         raise e
 
     finally:
         if driver is not None:
             logger.info("Quitting WebDriver and closing browser.")
+            logger.info(f"--------- {browser_name} Browser Closed ---------")
             driver.quit()
         logger.info("--------- WebDriver Setup Completed ---------")
 

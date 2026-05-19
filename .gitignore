@@ -20,7 +20,7 @@ coverage.xml
 reports/
 allure-results/
 Configurations/
-*.log
+logs/
 
 # IDE Specific (PyCharm/VSCode)
 .idea/
