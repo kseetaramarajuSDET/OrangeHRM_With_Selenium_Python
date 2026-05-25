@@ -16,6 +16,7 @@ from utilities.ReadConfig import ReadConfig
 from pages.LoginPage import LoginPage
 from utilities.customLogger import LogGen  # Import your logger utility
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.options import Options as ChromeOptions
 
 # Initialize the logger for the conftest level
 logger = LogGen.loggen()
@@ -36,17 +37,19 @@ def setup(request):
     logger.info("--------- Starting WebDriver Setup ---------")
     logger.info(f"--------- Initializing {browser_name} browser ---------")
 
-    # if browser_name == "edge":
-    #     # Force webdriver-manager to ignore the internet entirely
-    #     os.environ['WDM_LOCAL'] = '1'
-    #     # Optional: Disable SSL verification if it's a proxy issue
-    #     os.environ['WDM_SSL_VERIFY'] = '0'
-
     try:
         # 1️⃣ Create browser
         if browser_name == "chrome":
+            options = ChromeOptions()
+            # Eager strategy bypasses long asset load lags
+            options.page_load_strategy = 'eager'
+
+            # Handle environment lags (uncomment these to help the renderer thread)
+            options.add_argument("--disable-gpu")
+            options.add_argument("--no-sandbox")
+            options.add_argument("--disable-dev-shm-usage")
             service = ChromeService(ChromeDriverManager().install())
-            driver = webdriver.Chrome(service=service)
+            driver = webdriver.Chrome(service=service, options=options)
         elif browser_name == "firefox":
             service = FirefoxService(GeckoDriverManager().install())
             driver = webdriver.Firefox(service=service)
@@ -124,3 +127,40 @@ def init_pages(request, setup):
     request.cls.jp = JobPage(setup)
 
     logger.info("Page Objects initialized and attached to the class instance.")
+
+
+# ================= CUSTOM HTML REPORT CONFIGURATION =================
+
+def pytest_configure(config):
+    """Adds custom metadata including active browser to the HTML Report environment section safely"""
+
+    # 1. Dynamically read the browser value from command-line options
+    # Safely fallback to "chrome" if for some reason it's not captured
+    try:
+        browser_used = config.getoption("--browser")
+    except ValueError:
+        browser_used = "chrome"
+
+    # Capitalize it nicely for the report (e.g., chrome -> Chrome)
+    browser_name = str(browser_used).capitalize()
+
+    """Adds custom metadata to the HTML Report environment section safely"""
+    # Check if the metadata plugin is available before using it
+    if hasattr(config, "stash"):
+        # Modern Pytest 8/9 approach using pluggy/pytest stashes
+        from pytest_metadata.plugin import metadata_key
+        config.stash[metadata_key]['Project Name'] = 'OrangeHRM Test Suite'
+        config.stash[metadata_key]['Tester'] = 'QA Automation Engineer'
+        config.stash[metadata_key]['Browser'] = browser_name  # <--- DYNAMIC BROWSER ADDED HERE
+
+        # Safely remove unwanted default rows if they exist
+        if 'JAVA_HOME' in config.stash[metadata_key]:
+            del config.stash[metadata_key]['JAVA_HOME']
+        if 'Packages' in config.stash[metadata_key]:
+            del config.stash[metadata_key]['Packages']
+    else:
+        # Fallback wrapper for backward compatibility
+        if hasattr(config, "_metadata"):
+            config._metadata['Project Name'] = 'OrangeHRM Test Suite'
+            config._metadata['Tester'] = 'QA Automation Engineer'
+            config._metadata['Browser'] = browser_name  # <--- DYNAMIC BROWSER ADDED HERE
