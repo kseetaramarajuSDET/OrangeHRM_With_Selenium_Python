@@ -5,6 +5,8 @@ from utilities.FakerUtility import FakerUtility
 
 class Test_Job_Page(Base_Test):
 
+    @pytest.mark.sanity
+    @pytest.mark.regression
     def test_add_new_job(self):
         self.logger.info("**** Starting: test_add_new_job ****")
 

@@ -7,6 +7,9 @@ from utilities.YamlReader import YamlReader
 
 class Test_Login(Base_Test):
 
+
+    @pytest.mark.sanity
+    @pytest.mark.regression
     def test_login_with_valid_credentials(self, request):
         self.logger.info("**** Starting: test_login_with_valid_credentials ****")
 
@@ -34,6 +37,8 @@ class Test_Login(Base_Test):
 
     test_data = YamlReader.read_loginData_from_Yaml_File("test-data/loginData.yml")
 
+
+    @pytest.mark.sanity
     @pytest.mark.parametrize("user, pwd, result", test_data)
     def test_login_with_valid_And_Invalid_credentials(self, user, pwd, result, request):
         self.logger.info(f"**** Starting Data Driven Test: User={user}, Expected={result} ****")
@@ -70,8 +75,10 @@ class Test_Login(Base_Test):
     # Passes file name and specific sheet tab name
     excel_data = ExcelReader.get_data_from_excel("Login_Data_Excel.xlsx", "Sheet1")
 
+
+    @pytest.mark.sanity
     @pytest.mark.parametrize("user, pwd, result", excel_data)
-    def test_login_with_valid_And_Invalid_credentials(self, user, pwd, result, request):
+    def test_login_with_valid_And_Invalid_credentials_using_Excel(self, user, pwd, result, request):
         self.logger.info(f"**** Starting Data Driven Test: User={user}, Expected={result} ****")
 
         self.lp.setUserName(user)
