@@ -5,3 +5,5 @@ pytest-xdist
 openpyxl
 allure-pytest
 webdriver-manager
+faker
+pyyaml
